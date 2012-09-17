@@ -1,3 +1,11 @@
+################################################################################
+#
+# Copyright (C) 2012, Ian Coleman
+# Distributed under the GNU Affero General Public License (AGPL v3)
+# See http://www.gnu.org/licenses/agpl.html
+#
+################################################################################
+
 from twisted.web import server
 from twisted.internet import reactor
 from txjsonrpc.web import jsonrpc
