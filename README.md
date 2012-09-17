@@ -47,10 +47,13 @@ Returns a decimal value in BTC for the amount received by the address.
 Dependencies
 ------------
 
+The [usual armory dependencies] still apply, in addition to
+
 <b>txjson-rpc<b>
 
 `$ sudo pip install txJSON-RPC`
 
 More info at [https://launchpad.net/txjsonrpc](https://launchpad.net/txjsonrpc)
 
-[https://en.bitcoin.it/wiki/API_reference_(JSON-RPC)]: https://en.bitcoin.it/wiki/API_reference_(JSON-RPC) 
+[https://en.bitcoin.it/wiki/API_reference_(JSON-RPC)]: https://en.bitcoin.it/wiki/API_reference_(JSON-RPC)
+[usual armory dependencies]: https://bitcointalk.org/index.php?topic=92496.msg1027061#msg1027061
