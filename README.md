@@ -6,19 +6,20 @@ BitcoinArmory-Daemon provides a <b>JSON-RPC interface</b> to Armory which is sui
 Installation
 ============
 
-
-* Install dependencies (extra to armory dependencies).
+* Install dependencies, including armory dependencies (see below).
 * Download and extract the files.
 * Copy your watch-only wallet to the same directory as you extracted the source.
 
 How To Use
 =======
 
-Run
+Ensure bitcoind is running.
+
+Start the bitcoind-daemon json-rpc server
 
 `$ python armory-daemon.py`
 
-on the server from the directory the source was extracted to.
+Run this command from the directory the source was extracted to.
 
 Now any client can access through jsonrpc. See [https://en.bitcoin.it/wiki/API_reference_(JSON-RPC)]
 for examples of how to run a json-rpc client.
