@@ -23,6 +23,27 @@ on the server from the directory the source was extracted to.
 Now any client can access through jsonrpc. See [https://en.bitcoin.it/wiki/API_reference_(JSON-RPC)]
 for examples of how to run a json-rpc client.
 
+Available Methods
+-----------------
+<u>`getbalance`</u>`()`
+
+Returns a decimal value in BTC for the total remaining balance in the wallet.
+
+
+<u>`getnewaddress`</u>`()`
+
+Returns the next address in the wallet as a string.
+
+
+<u>`getreceivedbyaddress`</u>`(address)`
+
+Returns a decimal value in BTC for the amount received by the address.
+
+
+<u>`sendtoaddress`</u>`(address, amount)`
+
+`amount` is a decimal value in BTC. Returns an unsigned transaction as a string. Implementation of signing and broadcasting is left to the client.
+
 Dependencies
 ------------
 
