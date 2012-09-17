@@ -24,6 +24,8 @@ Run this command from the directory the source was extracted to.
 Now any client can access through jsonrpc. See [https://en.bitcoin.it/wiki/API_reference_(JSON-RPC)]
 for examples of how to run a json-rpc client.
 
+The default port for the rpc server is 7070, and can be changed in armory-daemon.py
+
 Available Methods
 -----------------
 `getbalance()`
