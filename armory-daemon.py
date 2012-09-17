@@ -46,7 +46,6 @@ class Wallet_Json_Rpc_Server(jsonrpc.JSONRPC):
             raise ValueError('Cannot create transactions when offline')
         return self.create_unsigned_transaction(bitcoinaddress, amount)
 
-
         
     # https://bitcointalk.org/index.php?topic=92496.msg1126310#msg1126310
     def create_unsigned_transaction(self, bitcoinaddress_str, amount_to_send_btc):
@@ -107,10 +106,6 @@ class Armory_Daemon():
     def start(self):
         print "Server started"
         reactor.run()
-        
-    def stop(self):
-        print "Server stopped"
-        reator.stop()
             
     def newTxFunc(self, pytxObj):
         # Cut down version from ArmoryQt.py
