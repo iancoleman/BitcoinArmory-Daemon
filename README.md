@@ -20,7 +20,7 @@ Run
 
 on the server from the directory the source was extracted to.
 
-Now any client can access through jsonrpc. See [https://en.bitcoin.it/wiki/API_reference_(JSON-RPC)](https://en.bitcoin.it/wiki/API_reference_(JSON-RPC))
+Now any client can access through jsonrpc. See [https://en.bitcoin.it/wiki/API_reference_(JSON-RPC)]
 for examples of how to run a json-rpc client.
 
 Dependencies
@@ -32,3 +32,4 @@ Dependencies
 
 More info at [https://launchpad.net/txjsonrpc](https://launchpad.net/txjsonrpc)
 
+[https://en.bitcoin.it/wiki/API_reference_(JSON-RPC)]: https://en.bitcoin.it/wiki/API_reference_(JSON-RPC) 
