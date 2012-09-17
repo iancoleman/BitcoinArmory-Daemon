@@ -25,22 +25,22 @@ for examples of how to run a json-rpc client.
 
 Available Methods
 -----------------
-<u>`getbalance`</u>`()`
+`getbalance()`
 
 Returns a decimal value in BTC for the total remaining balance in the wallet.
 
 
-<u>`getnewaddress`</u>`()`
+`getnewaddress()`
 
 Returns the next address in the wallet as a string.
 
 
-<u>`getreceivedbyaddress`</u>`(address)`
+`getreceivedbyaddress(address)`
 
 Returns a decimal value in BTC for the amount received by the address.
 
 
-<u>`sendtoaddress`</u>`(address, amount)`
+`sendtoaddress(address, amount)`
 
 `amount` is a decimal value in BTC. Returns an unsigned transaction as a string. Implementation of signing and broadcasting is left to the client.
 
