@@ -47,6 +47,7 @@ class Wallet_Json_Rpc_Server(jsonrpc.JSONRPC):
         return self.create_unsigned_transaction(bitcoinaddress, amount)
 
     def jsonrpc_listtransactions(self, p_count=10, p_from=0):
+        #TODO this needs more work
         txs = self.wallet.getTxLedger()
         for x in txs:
             print x.pprint()
