@@ -89,13 +89,13 @@ class Armory_Daemon():
 
     def __init__(self):
 
+        print "Reading wallet file"
+        self.wallet = self.find_wallet()
+
         use_blockchain = not CLI_OPTIONS.offline
         if(use_blockchain):
             print "Loading blockchain"
             BDM_LoadBlockchainFile()
-
-        print "Reading wallet file"
-        self.wallet = self.find_wallet()
         
         print "Initialising server"
         reactor.listenTCP(RPC_PORT, server.Site(Wallet_Json_Rpc_Server(self.wallet)))
