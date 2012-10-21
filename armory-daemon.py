@@ -6,12 +6,34 @@
 #
 ################################################################################
 
+# This is a json-rpc interface to armory - http://bitcoinarmory.com/
+#
+# Where possible this follows conventions established by the Satoshi client.
+# Does not require armory to be installed or running, this is a standalone application.
+# Requires bitcoind process to be running before starting armory-daemon.
+# Requires an armory watch-only wallet to be in the same folder as the
+# armory-daemon script.
+# Works with testnet, use --testnet flag when starting the script.
+#
+# BEWARE:
+# This is relatively untested, please use caution. There should be no chance for
+# irreversible damage to be done by this software, but it is still in the early
+# development stage so treat it with the appropriate level of skepticism.
+
+# Many thanks must go to etotheipi who started the armory client, and who has
+# provided immense amounts of help with this. This app is mostly chunks
+# of code taken from armory and refurbished into an rpc client.
+# See the bitcontalk thread for more details about this software:
+# https://bitcointalk.org/index.php?topic=92496.0
+
 from twisted.web import server
 from twisted.internet import reactor
 from txjsonrpc.web import jsonrpc
 
+import datetime
 import decimal
 import os
+import sys
 
 RPC_PORT = 7070
 STANDARD_FEE = 0.0005 # BTC
@@ -46,11 +68,58 @@ class Wallet_Json_Rpc_Server(jsonrpc.JSONRPC):
             raise ValueError('Cannot create transactions when offline')
         return self.create_unsigned_transaction(bitcoinaddress, amount)
 
-    def jsonrpc_listtransactions(self, p_count=10, p_from=0):
+    def jsonrpc_listtransactions(self, tx_count=10, from_tx=0):
         #TODO this needs more work
-        txs = self.wallet.getTxLedger()
-        for x in txs:
-            print x.pprint()
+        # - populate the rest of the values in tx_info
+        #      - fee
+        #      - blocktime
+        #      - timereceived
+        # Thanks to unclescrooge for inclusions - https://bitcointalk.org/index.php?topic=92496.msg1282975#msg1282975
+        # NOTE that this does not use 'account' like in the Satoshi client
+        final_tx_list = []
+        txs = self.wallet.getTxLedger('blk')
+        for tx in txs[from_tx:]:
+            account = ''
+            txHashBin = tx.getTxHash()#hex_to_binary(tx.getTxHash())
+            cppTx = TheBDM.getTxByHash(txHashBin)
+            pytx = PyTx().unserialize(cppTx.serialize())
+            for txout in pytx.outputs:
+                scrType = getTxOutScriptType(txout.binScript)
+                if not scrType in (TXOUT_SCRIPT_STANDARD, TXOUT_SCRIPT_COINBASE):
+                  continue
+                address = hash160_to_addrStr(TxOutScriptExtractAddr160(txout.binScript))
+                if self.wallet.hasAddr(address) == False:
+                  continue
+                else:
+                    break
+            if tx.getValue() < 0:
+                category = 'send'
+            else:
+                category = 'receive'
+            amount = float(decimal.Decimal(tx.getValue()) / decimal.Decimal(ONE_BTC))
+            confirmations = TheBDM.getTopBlockHeader().getBlockHeight() - tx.getBlockNum()+1
+            blockhash = 'TODO'
+            blockindex = 'TODO'#tx.getBlockNum()
+            txid = str(binary_to_hex(tx.getTxHash()))
+            time = 'TODO'#tx.getTxTime()
+            tx_info = {
+                'account':account,
+                'address':address,
+                'category':category,
+                'amount':amount,
+                #'fee': -0,
+                'confirmations':confirmations,
+                'blockhash':blockhash,
+                'blockindex':blockindex,
+                #'blocktime': blocktime,
+                'txid':txid,
+                'time:':time,
+                #'timereceived': timereceived
+                }
+            final_tx_list.append(tx_info)
+            if len(final_tx_list) >= tx_count:
+                break
+        return final_tx_list
 
         
     # https://bitcointalk.org/index.php?topic=92496.msg1126310#msg1126310
@@ -89,15 +158,15 @@ class Armory_Daemon():
 
     def __init__(self):
 
-        print "Reading wallet file"
+        sys.stdout.write("\nReading wallet file")
         self.wallet = self.find_wallet()
 
         use_blockchain = not CLI_OPTIONS.offline
         if(use_blockchain):
-            print "Loading blockchain"
-            BDM_LoadBlockchainFile()
+            sys.stdout.write("\nLoading blockchain")
+            self.loadBlockchain()
         
-        print "Initialising server"
+        sys.stdout.write("\nInitialising server")
         reactor.listenTCP(RPC_PORT, server.Site(Wallet_Json_Rpc_Server(self.wallet)))
 
         self.NetworkingFactory = ArmoryClientFactory( \
@@ -106,11 +175,11 @@ class Armory_Daemon():
                                 func_newTx=self.newTxFunc)
                                 
         reactor.connectTCP('127.0.0.1', BITCOIN_PORT, self.NetworkingFactory)
-        
+        reactor.callLater(5, self.Heartbeat)
         self.start()
 
     def start(self):
-        print "Server started"
+        sys.stdout.write("\nServer started")
         reactor.run()
             
     def newTxFunc(self, pytxObj):
@@ -164,7 +233,7 @@ class Armory_Daemon():
             message = 'Wallet "%s" just sent %s BTC to itself!' % \
                (self.wallet.labelName, coin2str(amt,maxZeros=1).strip())
                
-        print message
+        sys.stdout.write("\n" + message)
 
     def determineSentToSelfAmt(self, le, wlt):
       """
@@ -197,10 +266,10 @@ class Armory_Daemon():
       return (amt, txOutIndex)
 
     def showOfflineMsg(self):
-        print "Offline - not tracking blockchain"
+        sys.stdout.write("\n%s Offline - not tracking blockchain" % datetime.now().isoformat())
 
     def showOnlineMsg(self):
-        print "Online - tracking blockchain"
+        sys.stdout.write("\n%s Online - tracking blockchain" % datetime.now().isoformat())
 
     def find_wallet(self):
         fnames = os.listdir(os.getcwd())
@@ -210,10 +279,66 @@ class Armory_Daemon():
             is_backup = fname.find("backup") > -1
             if(is_wallet and is_watchonly and not is_backup):
                 wallet = PyBtcWallet().readWalletFile(fname)
-                print "Using wallet file %s" % fname
+                sys.stdout.write("\nUsing wallet file %s" % fname)
                 return wallet
         raise ValueError('Unable to locate a watch-only wallet in %s' % os.getcwd())
-            
+
+    def loadBlockchain(self):
+        BDM_LoadBlockchainFile()
+        # Thanks to unclescrooge for inclusions - https://bitcointalk.org/index.php?topic=92496.msg1282975#msg1282975
+        self.latestBlockNum = TheBDM.getTopBlockHeader().getBlockHeight()
+
+        # Now that theb blockchain is loaded, let's populate the wallet info
+        if TheBDM.isInitialized():
+            mempoolfile = os.path.join(ARMORY_HOME_DIR,'mempool.bin')
+            self.checkMemoryPoolCorruption(mempoolfile)
+            TheBDM.enableZeroConf(mempoolfile)
+
+            # self.statusBar().showMessage('Syncing wallets with blockchain...')
+            sys.stdout.write("\nSyncing wallets with blockchain")
+            sys.stdout.write("\nSyncing wallet: %s" % self.wallet.uniqueIDB58)
+            self.wallet.setBlockchainSyncFlag(BLOCKCHAIN_READONLY)
+            self.wallet.syncWithBlockchain()
+
+    def checkMemoryPoolCorruption(self, mempoolname):
+        if not os.path.exists(mempoolname):
+            return
+
+        memfile = open(mempoolname, 'r')
+        memdata = memfile.read()
+        memfile.close()
+
+        binunpacker = BinaryUnpacker(memdata)
+        try:
+            while binunpacker.getRemainingSize() > 0:
+                binunpacker.get(UINT64)
+                PyTx().unserialize(binunpacker)
+        except:
+            os.remove(mempoolname);
+            #LOGWARN('Memory pool file was corrupt.  Deleted. (no further action is needed)')
+
+    def Heartbeat(self, nextBeatSec=2):
+        """
+        This method is invoked when the app is initialized, and will
+        run every 2 seconds, or whatever is specified in the nextBeatSec
+        argument.
+        """
+        # Check for new blocks in the blk000X.dat file
+        if TheBDM.isInitialized():
+            sys.stdout.write(".")
+            sys.stdout.flush()
+            newBlks = TheBDM.readBlkFileUpdate()
+            self.topTimestamp   = TheBDM.getTopBlockHeader().getTimestamp()
+            if newBlks>0:
+                self.latestBlockNum = TheBDM.getTopBlockHeader().getBlockHeight()
+                didAffectUs = False
+                prevLedgerSize = len(self.wallet.getTxLedger())
+                self.wallet.syncWithBlockchain()
+                TheBDM.rescanWalletZeroConf(self.wallet.cppWallet)
+
+        self.wallet.checkWalletLockTimeout()
+
+        reactor.callLater(nextBeatSec, self.Heartbeat)
 
                 
 if __name__ == "__main__":
