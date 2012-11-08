@@ -165,23 +165,23 @@ class Armory_Daemon():
         if(use_blockchain):
             sys.stdout.write("\nLoading blockchain")
             self.loadBlockchain()
-        
+
         sys.stdout.write("\nInitialising server")
         reactor.listenTCP(RPC_PORT, server.Site(Wallet_Json_Rpc_Server(self.wallet)))
 
-        self.NetworkingFactory = ArmoryClientFactory( \
-                                func_loseConnect=self.showOfflineMsg, \
-                                func_madeConnect=self.showOnlineMsg, \
-                                func_newTx=self.newTxFunc)
-                                
-        reactor.connectTCP('127.0.0.1', BITCOIN_PORT, self.NetworkingFactory)
-        reactor.callLater(5, self.Heartbeat)
+        if(use_blockchain):
+          self.NetworkingFactory = ArmoryClientFactory( \
+                                  func_loseConnect=self.showOfflineMsg, \
+                                  func_madeConnect=self.showOnlineMsg, \
+                                  func_newTx=self.newTxFunc)
+          reactor.connectTCP('127.0.0.1', BITCOIN_PORT, self.NetworkingFactory)
+          reactor.callLater(5, self.Heartbeat)
         self.start()
 
     def start(self):
         sys.stdout.write("\nServer started")
         reactor.run()
-            
+
     def newTxFunc(self, pytxObj):
         # Cut down version from ArmoryQt.py
         TheBDM.addNewZeroConfTx(pytxObj.serialize(), long(RightNow()), True)
