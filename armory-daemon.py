@@ -173,7 +173,7 @@ class Armory_Daemon():
           self.NetworkingFactory = ArmoryClientFactory( \
                                   func_loseConnect=self.showOfflineMsg, \
                                   func_madeConnect=self.showOnlineMsg, \
-                                  func_newTx=self.newTxFunc)
+                                  func_newTx=self.handleIncomingTxFunc)
           reactor.connectTCP('127.0.0.1', BITCOIN_PORT, self.NetworkingFactory)
           reactor.callLater(5, self.Heartbeat)
         self.start()
@@ -182,7 +182,7 @@ class Armory_Daemon():
         sys.stdout.write("\nServer started")
         reactor.run()
 
-    def newTxFunc(self, pytxObj):
+    def handleIncomingTxFunc(self, pytxObj):
         # Cut down version from ArmoryQt.py
         TheBDM.addNewZeroConfTx(pytxObj.serialize(), long(RightNow()), True)
         TheBDM.rescanWalletZeroConf(self.wallet.cppWallet)
