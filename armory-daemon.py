@@ -214,7 +214,7 @@ class Armory_Daemon():
         raise ValueError('Unable to locate a watch-only wallet in %s' % os.getcwd())
 
     def loadBlockchain(self):
-        BDM_LoadBlockchainFile()
+        TheBDM.loadBlockchain()
         # Thanks to unclescrooge for inclusions - https://bitcointalk.org/index.php?topic=92496.msg1282975#msg1282975
         self.latestBlockNum = TheBDM.getTopBlockHeader().getBlockHeight()
 
