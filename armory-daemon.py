@@ -190,80 +190,10 @@ class Armory_Daemon():
         # TODO set up a 'subscribe' feature so these notifications can be
         # pushed out to interested parties.
 
-        # From here down is display purposes only, copied from ArmoryQt.py
-        message = "New TX"
-        le = self.wallet.cppWallet.calcLedgerEntryForTxStr(pytxObj.serialize())
-        if not le.isSentToSelf():
-            txref = TheBDM.getTxByHash(le.getTxHash())
-            nOut = txref.getNumTxOut()
-            recips = [txref.getTxOut(i).getRecipientAddr() for i in range(nOut)]
-            values = [txref.getTxOut(i).getValue()         for i in range(nOut)]
-            idxMine  = filter(lambda i:     self.wallet.hasAddr(recips[i]), range(nOut))
-            idxOther = filter(lambda i: not self.wallet.hasAddr(recips[i]), range(nOut))
-            mine  = [(recips[i],values[i]) for i in idxMine]
-            other = [(recips[i],values[i]) for i in idxOther]
+        # TODO something useful with this information
 
-            # Collected everything we need to display, now construct it and do it
-            if le.getValue()>0:
-               # Received!
-               message = 'Bitcoins Received!'
-               totalStr = coin2str( sum([mine[i][1] for i in range(len(mine))]), maxZeros=1)
-               message += '\nAmount: \t%s BTC' % totalStr.strip()
-               if len(mine)==1:
-                  message += '\nAddress:\t%s' % hash160_to_addrStr(mine[0][0])
-                  addrComment = self.wallet.getComment(mine[0][0])
-                  #if addrComment:
-                     #message += '\n%s...' % addrComment[:24]
-               else:
-                  message += '\n<Received with Multiple Addresses>'
-            elif le.getValue()<0:
-               # Sent!
-               message = 'Bitcoins Sent!'
-               totalStr = coin2str( sum([other[i][1] for i in range(len(other))]), maxZeros=1)
-               message += '\nAmount: \t%s BTC' % totalStr.strip()
-               if len(other)==1:
-                  message += 'Sent To:\t%s' % hash160_to_addrStr(other[0][0])
-                  addrComment = self.wallet.getComment(other[0][0])
-                  #if addrComment:
-                     #message += '\n%s...' % addrComment[:24]
-               else:
-                  dispLines.append('<Sent to Multiple Addresses>')
-        else:
-            amt = self.determineSentToSelfAmt(le, self.wallet)[0]
-            message = 'Wallet "%s" just sent %s BTC to itself!' % \
-               (self.wallet.labelName, coin2str(amt,maxZeros=1).strip())
-               
-        sys.stdout.write("\n" + message)
-
-    def determineSentToSelfAmt(self, le, wlt):
-      """
-      NOTE:  this method works ONLY because we always generate a new address
-             whenever creating a change-output, which means it must have a
-             higher chainIndex than all other addresses.  If you did something
-             creative with this tx, this may not actually work.
-      """
-      amt = 0
-      if TheBDM.isInitialized() and le.isSentToSelf():
-         txref = TheBDM.getTxByHash(le.getTxHash())
-         if not txref.isInitialized():
-            return (0, 0)
-         if txref.getNumTxOut()==1:
-            return (txref.getTxOut(0).getValue(), -1)
-         maxChainIndex = -5
-         txOutChangeVal = 0
-         txOutIndex = -1
-         valSum = 0
-         for i in range(txref.getNumTxOut()):
-            valSum += txref.getTxOut(i).getValue()
-            addr160 = txref.getTxOut(i).getRecipientAddr()
-            addr    = wlt.getAddrByHash160(addr160)
-            if addr and addr.chainIndex > maxChainIndex:
-               maxChainIndex = addr.chainIndex
-               txOutChangeVal = txref.getTxOut(i).getValue()
-               txOutIndex = i
-
-         amt = valSum - txOutChangeVal
-      return (amt, txOutIndex)
+        #message = "New TX"
+        #sys.stdout.write("\n" + message) # Gets too noisy
 
     def showOfflineMsg(self):
         sys.stdout.write("\n%s Offline - not tracking blockchain" % datetime.now().isoformat())
