@@ -30,6 +30,9 @@ from twisted.web import server
 from twisted.internet import reactor
 from txjsonrpc.web import jsonrpc
 
+from twisted.cred.checkers import FilePasswordDB
+from txjsonrpc.auth import wrapResource
+
 import datetime
 import decimal
 import os
@@ -167,7 +170,9 @@ class Armory_Daemon():
             self.loadBlockchain()
 
         sys.stdout.write("\nInitialising server")
-        reactor.listenTCP(RPC_PORT, server.Site(Wallet_Json_Rpc_Server(self.wallet)))
+        resource = Wallet_Json_Rpc_Server(self.wallet)
+        secured_resource = self.set_auth(resource)
+        reactor.listenTCP(RPC_PORT, server.Site(secured_resource))
 
         if(use_blockchain):
           self.NetworkingFactory = ArmoryClientFactory( \
@@ -177,6 +182,13 @@ class Armory_Daemon():
           reactor.connectTCP('127.0.0.1', BITCOIN_PORT, self.NetworkingFactory)
           reactor.callLater(5, self.Heartbeat)
         self.start()
+
+    def set_auth(self, resource):
+        passwordfile = "credentials.txt" # TODO change to bitcoin credentials
+        checker = FilePasswordDB(passwordfile)
+        realmName = "Armory JSON-RPC App"
+        wrapper = wrapResource(resource, [checker], realmName=realmName)
+        return wrapper
 
     def start(self):
         sys.stdout.write("\nServer started")
