@@ -80,8 +80,10 @@ class Wallet_Json_Rpc_Server(jsonrpc.JSONRPC):
         # Thanks to unclescrooge for inclusions - https://bitcointalk.org/index.php?topic=92496.msg1282975#msg1282975
         # NOTE that this does not use 'account' like in the Satoshi client
         final_tx_list = []
-        txs = self.wallet.getTxLedger('blk')
-        for tx in txs[from_tx:]:
+        all_txs = self.wallet.getTxLedger('blk')
+        txs = all_txs[from_tx:]
+        for i in range(len(txs)):
+            tx = txs[i]
             account = ''
             txHashBin = tx.getTxHash()#hex_to_binary(tx.getTxHash())
             cppTx = TheBDM.getTxByHash(txHashBin)
