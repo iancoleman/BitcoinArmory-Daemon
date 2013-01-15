@@ -1,6 +1,14 @@
 BitcoinArmory-Daemon
 ====================
 
+*No Longer Maintained! as of 2013-15-01*
+
+Please consult the BitcoinArmory project for the new daemon.
+
+This repository is kept as a reference for the purposes of the original author.
+
+---------
+
 BitcoinArmory-Daemon provides a <b>JSON-RPC interface</b> to Armory which is suitable for use on webservers and other instances where a GUI is not desired.
 
 Installation
